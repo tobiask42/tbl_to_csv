@@ -170,7 +170,7 @@ def convert_with_spark(
     tbl_name: str,
     overwrite: bool
 ) -> int:
-    tbl_path = Path(folder + "/"+ tbl_name)
+    tbl_path = Path(folder) / tbl_name
     base_name: str = tbl_path.stem
     tmp_path = Path(folder) / f"{base_name}_out"
     csv_path = str_for_spark(tmp_path)
@@ -235,10 +235,10 @@ def convert_with_polars(
     overwrite: bool,
     ratio: float
 ) -> int:
-    tbl_path = Path(folder+ "/" + tbl_name)
+    tbl_path = Path(folder) / tbl_name
     base_name: str = tbl_path.stem
     csv_name: str = base_name + CSV_SUFFIX
-    csv_path = Path(folder + "/" + csv_name)
+    csv_path = Path(folder) / csv_name
 
     file_size = tbl_path.stat().st_size
     logger.info(f"Size of {tbl_name}: {format_file_size(file_size)} ({file_size} bytes)")
