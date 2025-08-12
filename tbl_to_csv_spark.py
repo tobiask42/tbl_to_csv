@@ -293,21 +293,32 @@ def main(args: Namespace) -> int:
     except FileNotFoundError as fnf:
         logger.error(fnf)
         return ExitCode.ERROR
+    
     tbl_files: list[str] = [x for x in names if x.endswith(TBL_SUFFIX)]
     csv_files: list[str] = [x for x in names if x.endswith(CSV_SUFFIX)]
+
     if len(tbl_files) == 0:
         logger.warning("No tbl files found.")
         logger.info("Exiting...")
         return ExitCode.NO_INPUT_FILES
-    spark: SparkSession| None = initialize_spark()
-    if spark is None:
-        return ExitCode.ERROR
-    for tbl in tbl_files:
-        written_files += convert_with_polars(folder, spark, tbl, csv_files,overwrite,ratio)
-    if written_files == 0:
-        return ExitCode.NOTHING_WRITTEN
-    return ExitCode.SUCCESS
-
+    
+    spark: SparkSession|None = None
+    try:
+        spark = initialize_spark()
+        if spark is None:
+            return ExitCode.ERROR
+        for tbl in tbl_files:
+            written_files += convert_with_polars(folder, spark, tbl, csv_files,overwrite,ratio)
+        if written_files == 0:
+            return ExitCode.NOTHING_WRITTEN
+        return ExitCode.SUCCESS
+    finally:
+        logger.info("Stopping spark...")
+        if spark is not None:
+            try:
+                spark.stop()
+            except Exception as e:
+                logger.warning(f"Couldn't stop spark cleanly: {e}")
 
 if __name__ == "__main__":
     parser = ArgumentParser(
